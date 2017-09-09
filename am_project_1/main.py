@@ -1,4 +1,4 @@
-import readDataset as inp
+import util
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 
@@ -8,9 +8,9 @@ fou_file = "mfeat/mfeat-fou"
 kar_file = "mfeat/mfeat-kar"
 
 # Get datasets as a numpy 2d array
-fac = inp.readDataset(fac_file)
-fou = inp.readDataset(fou_file)
-kar = inp.readDataset(kar_file)
+fac = util.readDataset(fac_file)
+fou = util.readDataset(fou_file)
+kar = util.readDataset(kar_file)
 
 # calculates euclidean distance as a condensed distance matrix
 fac_distance = pdist(fac, metric='euclidean')
