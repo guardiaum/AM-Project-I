@@ -14,6 +14,23 @@ def readDataset(dataset_name):
 	return aux
 	
 '''
+	GENERATES NUMPY ARRAY OF TARGETS (CLASSES) FOR PATTERN SPACE
+'''
+def generateTargets(patternSpace, ratio):
+	target_train = []
+	newPatternSpace = int(patternSpace * ratio)
+	for i in range(0,  10):
+		target_train.append([i] * newPatternSpace)
+	
+	target_test = []
+	ratio_test = 1.00 - ratio
+	newPatternSpace = int(patternSpace * float(ratio_test))
+	for i in range(0,  10):
+		target_test.append([i] * newPatternSpace)
+	
+	return np.hstack(target_train),  np.hstack(target_test)
+	
+'''
 	SPLITS THE DATASET INTO TRAINING AND TEST SETS
 '''
 def splitDataset(dataset, ratio):
