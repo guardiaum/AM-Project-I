@@ -51,7 +51,7 @@ kar_test = kar_clf.predict(kar_testSet)
 wrongPredictions = (target_test!=fac_test).sum()
 
 # print tests
-print("Number of mislabeled points out of a total %d points : %d" % (fac_trainingSet.shape[0], wrongPredictions))
+print("Number of mislabeled points out of a total %d points : %d" % (fac_testSet.shape[0], wrongPredictions))
 
 # print sigma - variance
 print("Sigma ++++++++++++++++++")
