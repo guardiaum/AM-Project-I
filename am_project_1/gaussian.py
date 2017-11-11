@@ -1,85 +1,102 @@
 import util
 import numpy as np
-from scipy.stats import norm
+from scipy.stats import multivariate_normal
 from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.model_selection import StratifiedKFold
 
 '''
     CLASSIFICADOR I
     BAYESIANO GAUSSIANO
 '''
 
-# number of classes
-numberOfClasses = 10
-# patterns per class
-patternSpace = 200
+# fit training set - estimates parameters
+def computePriorsAndThetas(train_set, numberOfClasses):
+    prior_ = []
+    mu_ = []
+    sigma_ = []
 
-# path to datasets
-fac_file = "mfeat/mfeat-fac"
-fou_file = "mfeat/mfeat-fou"
-kar_file = "mfeat/mfeat-kar"
+    # iterates through class training samples
+    for class_w in range(0, numberOfClasses):
 
-# Get datasets as a numpy 2d array
-fac = util.readDataset(fac_file)
-fou = util.readDataset(fou_file)
-kar = util.readDataset(kar_file)
+        # training set and class sample size
+        train_sample_size = train_set.shape[0]
+        class_sample_size = train_sample_size / 10
 
-# Generates numpy array of targets (classes)
-target = util.generateTargets(numberOfClasses, patternSpace)
-
-# stratified cross validation
-rskf = RepeatedStratifiedKFold(n_splits=10, n_repeats=30, random_state=42)
-
-for fac_train_index, fac_test_index in rskf.split(fac, target):
-
-    print("FAC - TRAIN:", fac_train_index.shape, "TEST:", fac_test_index.shape)
-    print("fac_features_train: (%s, %s)" % fac[fac_train_index].shape)
-    print("fac_target_train: %s" % target[fac_train_index].shape)
-    print("fac_features_test: (%s, %s)" % fac[fac_test_index].shape)
-    print("fac_target_test: %s" % target[fac_test_index].shape)
-
-    #iterates through class samples
-    for class_w in range(0, 10):
         # limits for training samples from class
-        initial_sample = class_w * (fac[fac_train_index].shape[0] / 10)
-        end_sample = initial_sample + (fac[fac_train_index].shape[0] / 10)
+        initial_sample = class_w * int(class_sample_size)
+        end_sample = initial_sample + int(class_sample_size)
 
-        print("Class: %s" % class_w)
-        #print("Start: %s" % initial_sample)
-        #print("End: %s" % end_sample)
+        # class samples
+        w_samples = train_set[initial_sample:end_sample, :]
 
-        logsLikelihood = []
-        mus = []
-        stds = []
-        for feature_index in range(0, fac[fac_train_index].shape[1]):
+        # calculates prior for class
+        prior = calculatePrior(class_sample_size, train_sample_size)
 
-            # get feature values from training samples
-            w_samples = fac[initial_sample: end_sample, feature_index]
+        # computes theta for each class
+        mu, sigma = calculateTheta(w_samples)
 
-            # calculates mean and standard deviation
-            mu = np.mean(w_samples)
-            std = np.std(w_samples)
+        prior_.append(prior)
+        mu_.append(mu)
+        sigma_.append(sigma)
 
-            # gets log of the probability density function.
-            # log-likelihood
-            log_likelihood = norm.logpdf(w_samples, loc=mu, scale=std)
+    return prior_, mu_, sigma_
 
-            #print("")
-            #print("mu: %s | std: %s" % (mu, std))
-            #print(feature_index, log_likelihood.shape)
+# calculate prior for class
+def calculatePrior(class_sample_size, train_sample_size):
+    return class_sample_size / float(train_sample_size)
 
-            logsLikelihood.append(log_likelihood)
-            mus.append(mu)
-            stds.append(std)
+# calculate theta from samples
+def calculateTheta(samples):
+    # calculates mean and standard deviation
+    mu = np.mean(samples, axis=1)
 
-        
-        logLikelihoodFunction = np.sum(logsLikelihood, axis=0)
+    cov = []
+    for i in range(0, samples.shape[0]):
+        row_std = []
+        for j in range(0, samples.shape[0]):
+            std = 0
+            if (i == j):
+                std = np.std(samples[i, :])
+            row_std.append(std)
+        cov.append(row_std)
 
-        # get log-likelihood argmax for theta
-        maxLikelihoodIndex = np.argmax(logLikelihoodFunction)
-        max_loglikelihood = logLikelihoodFunction[maxLikelihoodIndex]
-        max_theta = [mus[maxLikelihoodIndex], stds[maxLikelihoodIndex]]
+    sigma = np.array(cov)
 
-        print("Max likelihood: ", max_loglikelihood)
-        print("Max theta: %s" % max_theta)
+    return mu, sigma
 
-    break
+# calculate pdf for sample
+def likelihood(x, mu, sigma):
+    # sample size
+    d = mu.shape[0]
+
+    # computes probability density function for x given class
+    first_statement = np.power(2 * np.pi, (-d/2))
+    second_statement = np.power(np.product(sigma.diagonal()), -1/2)
+
+    # for each sample calculates the natural exponential
+    exp_statement = []
+    for j in range(0, d):
+        std = np.power(x - mu[j], 2) # standard deviation from each feature in sample
+        exp = std / sigma[j, j] # sigma[j, j] > lambda
+        exp_statement.append(exp)
+
+    exp_statement = np.array(exp_statement)
+    third_statement = np.exp(-1/2 * np.sum(exp_statement))
+    print(third_statement)
+
+    # calculates pdf for sample
+    likelihood = first_statement * second_statement * third_statement
+
+    # pdfs from all training samples
+    return np.array(likelihood)
+
+# calculate evidence from all sample likelihoods
+def evidence(likelihoods, priors):
+    evidence = 0
+    for i in range(0, likelihoods.shape[0]):
+        evidence = evidence + (likelihoods[i] * priors[i])
+    return evidence
+
+# calculate the posterior probability of a sample given some class
+def posterior(class_prior, likelihood, evidence):
+    return (likelihood * class_prior) / evidence
