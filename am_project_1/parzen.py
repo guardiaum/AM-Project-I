@@ -7,18 +7,26 @@ from sklearn.model_selection import StratifiedKFold
 '''
 	CLASSIFICADOR I
 	JANELA DE PARZEN
-	VEROSSIMILHANCA
+	KERNEL MULTIVARIADA DO PRODUTO
 '''
 
-# fits a better estimation for parameter h
-def bandwidth_estimator(data):
-    # use grid search cross-validation to optimize the bandwidth
-    params = {'bandwidth': np.logspace(0.1, 1, 30)}
-    grid = GridSearchCV(KernelDensity(), params, cv=30)
-    grid.fit(data)
+def gaussian_kernel(h, d, x, x_i):
+    # utilizar a funcao de kernel multivariada do produto
+    # ao inves de ssa gaussian kernel
+    return (1 / (((2 * np.pi)**d) * (h**d))) * np.exp(-1/2 * (((x - x_i) / h)**2))
 
-    return grid.best_estimator_.bandwidth
+def parzen_window_func(phi, h_d, n):
+    return 1/(n * h_d) * np.sum(phi)
 
+def parzen_estimation(x_samples, point, h, d, kernel_func, window_func):
+    n = x_samples.shape[0]
+    v = h**d
+    k = 0
+    for sample in x_samples:
+        phi = kernel_func(h, d, sample, point)
+        k += window_func(phi, v, n)
+
+    return (k / n) / v
 
 # number of classes
 numberOfClasses = 10
@@ -38,26 +46,33 @@ kar = util.readDataset(kar_file)
 # Generates numpy array of targets (classes)
 target = util.generateTargets(numberOfClasses, patternSpace)
 
-# stratified cross validation
-skf = StratifiedKFold(n_splits=10, random_state=42)
+skf = StratifiedKFold(n_splits=2, random_state=42)
 
-# iterates through class samples
-for class_w in range(0, 10):
-    print("Class: %s" % class_w)
+for train_index, test_index in skf.split(fac, target):
 
-    # limits for training samples from class
-    initial_sample = class_w * (fac.shape[0] / 10)
-    end_sample = initial_sample + (fac.shape[0] / 10)
+    train_set = fac[train_index]
+    train_target = target[train_index]
+    test_set = fac[test_index]
+    test_target = target[test_index]
 
-    # get values from training samples
-    fac_samples = fac[initial_sample: end_sample, :]
-    target_samples = target[initial_sample: end_sample]
+    # training set and class sample size
+    test_sample_size = test_set.shape[0]
+    class_sample_size = test_sample_size / 10
 
-    h = bandwidth_estimator(fac_samples)
+    # iterates through class samples
+    for w in range(0, 10):
+        # limits for training samples from class
+        initial_sample = w * int(class_sample_size)
+        end_sample = initial_sample + int(class_sample_size)
 
-    print("best bandwidth: {0}".format(h))
+        samples = train_set[initial_sample:end_sample, :]
+        test_samples = train_target[initial_sample:end_sample]
 
-    # Initiates Parzen classifiers
-    fac_kde = KernelDensity(kernel='gaussian', bandwidth=h).fit(fac_samples)
-    density = np.exp(fac_kde.score_samples(fac_samples))
-    print(density)
+        point_x = samples[1,:]
+
+        print('class', w, 'p(x) =', parzen_estimation(samples, point_x, h=1, d=samples.shape[1],
+                                          kernel_func=gaussian_kernel,
+                                          window_func=parzen_window_func
+                                          ))
+
+    print("======================= FINISH CV =============================")

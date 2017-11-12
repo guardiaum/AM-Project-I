@@ -7,6 +7,7 @@ from sklearn.model_selection import StratifiedKFold
 '''
     CLASSIFICADOR I
     BAYESIANO GAUSSIANO
+    VEROSSIMILHANCA
 '''
 
 # fit training set - estimates parameters

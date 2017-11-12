@@ -25,7 +25,7 @@ target = util.generateTargets(numberOfClasses, patternSpace)
 # stratified cross validation
 #rskf = RepeatedStratifiedKFold(n_splits=10, n_repeats=30, random_state=42)
 
-skf = StratifiedKFold(n_splits=2, random_state=42)
+skf = StratifiedKFold(n_splits=10, random_state=42)
 
 for train_index, test_index in skf.split(fac, target):
 
