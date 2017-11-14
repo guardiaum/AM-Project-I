@@ -83,8 +83,7 @@ def likelihood(x, mu, sigma):
     # pdfs from all training samples
     return np.array(likelihood)
 
-# predict sample using estimated parameters
-def predict(test_sample, mu_, sigma_, prior_):
+def posteriorFromEachClass(test_sample, mu_, sigma_, prior_):
     likelihoods = []
     # iterates over each class
     # computing likelihood for each sample
@@ -115,7 +114,12 @@ def predict(test_sample, mu_, sigma_, prior_):
         posterior = bayes.posterior(prior_[w], likelihoods[w], evidence)
         posteriors.append(posterior)
 
-    posteriors = np.array(posteriors)
+    return np.array(posteriors)
+
+# predict sample using estimated parameters
+def predict(test_sample, mu_, sigma_, prior_):
+
+    posteriors = posteriorFromEachClass(test_sample, mu_, sigma_, prior_)
 
     # afeta exemplo a classe de maior posteriori
     return np.argmax(posteriors), posteriors[np.argmax(posteriors)]

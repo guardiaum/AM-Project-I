@@ -58,9 +58,7 @@ def bandwidth_estimator(data):
     grid.fit(data)
     return grid.best_estimator_.bandwidth
 
-
-# predict sample using estimated h parameter
-def predict(train_set, train_class_size, test_sample, h, prior_):
+def posteriorFromEachClass(train_set, train_class_size, test_sample, h, prior_):
     # iterates through classes calculating the density
     # for x given the class w
     densities = []
@@ -90,7 +88,12 @@ def predict(train_set, train_class_size, test_sample, h, prior_):
         # print("prior", prior_[w], "density", densities[w], "evidence", evidence)
         # print("w", w, "posterior", posterior)
 
-    posteriors = np.array(posteriors)
+    return np.array(posteriors)
+
+# predict sample using estimated h parameter
+def predict(train_set, train_class_size, test_sample, h, prior_):
+
+    posteriors = posteriorFromEachClass(train_set, train_class_size, test_sample, h, prior_)
 
     # afeta exemplo a classe de maior posteriori
     return np.argmax(posteriors), posteriors[np.argmax(posteriors)]
