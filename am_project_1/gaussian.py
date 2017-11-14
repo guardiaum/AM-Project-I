@@ -1,8 +1,5 @@
-import util
+import nayve_bayes as bayes
 import numpy as np
-from scipy.stats import multivariate_normal
-from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.model_selection import StratifiedKFold
 
 '''
     CLASSIFICADOR I
@@ -31,7 +28,7 @@ def computePriorsAndThetas(train_set, numberOfClasses):
         w_samples = train_set[initial_sample:end_sample, :]
 
         # calculates prior for class
-        prior = calculatePrior(class_sample_size, train_sample_size)
+        prior = bayes.calculatePrior(class_sample_size, train_sample_size)
 
         # computes theta for each class
         mu, sigma = calculateTheta(w_samples)
@@ -41,10 +38,6 @@ def computePriorsAndThetas(train_set, numberOfClasses):
         sigma_.append(sigma)
 
     return prior_, mu_, sigma_
-
-# calculate prior for class
-def calculatePrior(class_sample_size, train_sample_size):
-    return class_sample_size / float(train_sample_size)
 
 # calculate theta from samples
 def calculateTheta(samples):
@@ -83,21 +76,10 @@ def likelihood(x, mu, sigma):
 
     exp_statement = np.array(exp_statement)
     third_statement = np.exp(-1/2 * np.sum(exp_statement))
-    print(third_statement)
+    #print(third_statement)
 
     # calculates pdf for sample
     likelihood = first_statement * second_statement * third_statement
 
     # pdfs from all training samples
     return np.array(likelihood)
-
-# calculate evidence from all sample likelihoods
-def evidence(likelihoods, priors):
-    evidence = 0
-    for i in range(0, likelihoods.shape[0]):
-        evidence = evidence + (likelihoods[i] * priors[i])
-    return evidence
-
-# calculate the posterior probability of a sample given some class
-def posterior(class_prior, likelihood, evidence):
-    return (likelihood * class_prior) / evidence
