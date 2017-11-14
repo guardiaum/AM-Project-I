@@ -1,9 +1,13 @@
 import util
-import nayve_bayes as bayes
 import gaussian
-import numpy as np
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import StratifiedKFold
+
+'''
+    RUN BAYESIAN GAUSSIAN CLASSIFIER
+    3 VIEWS
+    FOU - FAC - KAR
+'''
 
 # number of classes
 numberOfClasses = 10
@@ -24,89 +28,23 @@ kar = util.readDataset(kar_file)
 target = util.generateTargets(numberOfClasses, patternSpace)
 
 # stratified cross validation
-rskf = RepeatedStratifiedKFold(n_splits=10, n_repeats=30, random_state=42)
+#rskf = RepeatedStratifiedKFold(n_splits=10, n_repeats=30, random_state=42)
+rskf = StratifiedKFold(n_splits=10, random_state=42)
 
-#skf = StratifiedKFold(n_splits=10, random_state=42)
+fou_predictions, fou_error_rates = gaussian.runClassifier(rskf, fou, target)
 
-error_rates = []
-predictions = []
+print("fou confusion matrix")
+print(util.confusionMatrix(fou_predictions))
+print("fou error rate average %s" % util.errorRateAverage(fou_error_rates))
 
-r = 0
-for train_index, test_index in rskf.split(fac, target):
-    r += 1
-    print("repetition %s" % r)
+fac_predictions, fac_error_rates = gaussian.runClassifier(rskf, fac, target)
 
-    train_set = fac[train_index]
-    train_target = target[train_index]
-    test_set = fac[test_index]
-    test_target = target[test_index]
+print("fac confusion matrix")
+print(util.confusionMatrix(fac_predictions))
+print("fac error rate average %s" % util.errorRateAverage(fac_error_rates))
 
-    # computes prior and theta for all classes
-    prior_, mu_, sigma_ = gaussian.computePriorsAndThetas(train_set, numberOfClasses)
+kar_predictions, kar_error_rates = gaussian.runClassifier(rskf, kar, target)
 
-    # compute likelihood for each sample in test set
-    true_positives = 0
-    false_positives = 0
-    repetition_predictions = []
-    for i, test_sample in enumerate(test_set):
-
-        likelihoods = []
-        # iterates over each class
-        # computing likelihood for each sample
-        for w in range(0, numberOfClasses):
-            # get class parameters
-            class_mu = mu_[w]
-            class_sigma = sigma_[w]
-
-            # get test sample from test set
-            x = test_sample
-
-            # calculates likelihood for x given class w parameters
-            likelihood = gaussian.likelihood(x, class_mu, class_sigma)
-            likelihoods.append(likelihood)
-
-            #print("class %s" % w)
-            #print("pdf %s" % likelihood)
-
-        likelihoods = np.array(likelihoods)
-
-        # calcula evidencia de cada exemplo utilizando
-        # as verossimilhancas do exemplo dado cada classe
-        evidence = bayes.evidence(likelihoods, prior_)
-
-        # computa posteriori para cada classe
-        posteriors = []
-        for w in range(0, numberOfClasses):
-            posterior = bayes.posterior(prior_[w], likelihoods[w], evidence)
-            posteriors.append(posterior)
-
-        posteriors = np.array(posteriors)
-
-        # afeta exemplo a classe de maior posteriori
-        max = np.argmax(posteriors)
-        #print("PREDICT: %s" % max)
-        #print("ACTUAL CLASS: %s" % test_target[i])
-
-        # usado para gerar matriz de confusao
-        prediction = []
-        prediction.append(test_target[i])
-        prediction.append(max)
-        repetition_predictions.append(prediction)
-
-        # para calculo de taxa de erro
-        if(test_target[i] == max):
-            true_positives += 1
-        else:
-            false_positives +=1
-
-    print("true positives: %s" % true_positives)
-    print("false positives: %s" % false_positives)
-
-    error_rate = util.errorRate(true_positives, false_positives)
-
-    error_rates.append(error_rate)
-    predictions.append(repetition_predictions)
-
-print("confusion matrix")
-print(util.confusionMatrix(predictions))
-print("error rate average %s" % util.errorRateAverage(error_rates))
+print("kar confusion matrix")
+print(util.confusionMatrix(kar_predictions))
+print("kar error rate average %s" % util.errorRateAverage(kar_error_rates))

@@ -17,6 +17,19 @@ def posterior(class_prior, likelihood, evidence):
     return (likelihood * class_prior) / evidence
 
 
-# calculate prior for class
-def calculatePrior(class_sample_size, train_sample_size):
-    return class_sample_size / float(train_sample_size)
+# calculate prior for classes
+def calculatePrior(train_set, numberOfClasses):
+    prior_ = []
+
+    # iterates through class training samples
+    for w in range(0, numberOfClasses):
+
+        # training set and class sample size
+        train_sample_size = train_set.shape[0]
+        class_sample_size = train_sample_size / numberOfClasses
+
+        #compute prior
+        prior = class_sample_size / float(train_sample_size)
+        prior_.append(prior)
+
+    return prior_
