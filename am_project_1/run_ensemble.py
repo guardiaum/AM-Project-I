@@ -12,7 +12,7 @@ from sklearn.model_selection import StratifiedKFold
 '''
 
 def ensemblePrediction(priors, posteriors):
-    return np.argmax(((1 - priors.shape[0]) * priors) + posteriors)
+    return np.argmax(((1 - len(priors)) * priors) + posteriors)
 
 # number of classes
 numberOfClasses = 10
@@ -37,6 +37,7 @@ target = util.generateTargets(numberOfClasses, patternSpace)
 skf = StratifiedKFold(n_splits=10, random_state=42)
 
 r = 0
+error_rates = []
 predictions = []
 for train_index, test_index in skf.split(fou, target):
 
@@ -58,6 +59,7 @@ for train_index, test_index in skf.split(fou, target):
 
     # training set and class sample size - same for all datasets
     train_sample_size = fou_train_set.shape[0]
+    test_sample_size = fou_test_set.shape[0]
     train_class_size = train_sample_size / numberOfClasses
 
     # compute priors - same for all datasets
@@ -69,41 +71,70 @@ for train_index, test_index in skf.split(fou, target):
     kar_mu_, kar_sigma_ = gaussian.estimateParameters(kar_train_set, numberOfClasses)
 
     # h = bandwidth_estimator(train_set)
-    fou_h = 2
+    fou_h = 2 # fazer a estimativa de h para cada view
     fac_h = 2
     kar_h = 2
 
     # predict class for each sample in test set
+    true_positives = 0
+    false_positives = 0
     samples_predictions = []
-    for i, test_sample in enumerate(fou_test_set): # corrigir... utilizar as outras views
+    for sample_index in range(0, test_sample_size):
 
-        # true class for sample
-        actual_class = fou_test_target[i]
+        fou_test_sample = fou_test_set[sample_index]
+        fac_test_sample = fac_test_set[sample_index]
+        kar_test_sample = kar_test_set[sample_index]
+
+        # true class for sample - is the same true class for all views
+        actual_class = fou_test_target[sample_index]
 
         # afeta exemplo a classe de maior posteriori
         # gaussian classifier
-        fou_gauss_posteriors = gaussian.posteriorFromEachClass(test_sample, fou_mu_, fou_sigma_, prior_)
+        # calculate posteriors from view fou using gaussian classifier
+        fou_gauss_posteriors = gaussian.posteriorFromEachClass(fou_test_sample, fou_mu_, fou_sigma_, prior_)
 
-        fac_gauss_posteriors = gaussian.posteriorFromEachClass(test_sample, fac_mu_, fac_sigma_, prior_)
+        # calculate posteriors from view fac using gaussian classifier
+        fac_gauss_posteriors = gaussian.posteriorFromEachClass(fac_test_sample, fac_mu_, fac_sigma_, prior_)
 
-        kar_gauss_posteriors = gaussian.posteriorFromEachClass(test_sample, kar_mu_, kar_sigma_, prior_)
+        # calculate posteriors from view kar using gaussian classifier
+        kar_gauss_posteriors = gaussian.posteriorFromEachClass(kar_test_sample, kar_mu_, kar_sigma_, prior_)
 
-        # parzen window
-        fou_parzen_posteriors = parzen.posteriorFromEachClass(fou_train_set, train_class_size, test_sample, fou_h, prior_)
+        # calculate posteriors from view fou using parzen window
+        fou_parzen_posteriors = parzen.posteriorFromEachClass(fou_train_set, train_class_size, fou_test_sample, fou_h, prior_)
 
-        fac_parzen_posteriors = parzen.posteriorFromEachClass(fac_train_set, train_class_size, test_sample, fac_h, prior_)
+        # calculate posteriors from view fac using parzen window
+        fac_parzen_posteriors = parzen.posteriorFromEachClass(fac_train_set, train_class_size, fac_test_sample, fac_h, prior_)
 
-        kar_parzen_posteriors = parzen.posteriorFromEachClass(kar_train_set, train_class_size, test_sample, kar_h, prior_)
+        # calculate posteriors from vew kar using parzen window
+        kar_parzen_posteriors = parzen.posteriorFromEachClass(kar_train_set, train_class_size, kar_test_sample, kar_h, prior_)
 
         posteriors = zip(fou_gauss_posteriors, fac_gauss_posteriors, kar_gauss_posteriors,
                          fou_parzen_posteriors, fac_parzen_posteriors, kar_parzen_posteriors)
 
-        predicted = ensemblePrediction(prior_, posteriors)
+        # Ensemble classifiers using the sum rule
+        predicted_class = ensemblePrediction(prior_, posteriors)
+
+        #print("true class: %s" % actual_class)
+        #print("predicted: %s"% predicted_class)
 
         # usado para gerar matriz de confusao
         prediction = []
         prediction.append(actual_class)
-        prediction.append(predicted)
+        prediction.append(predicted_class)
         samples_predictions.append(prediction)
 
+        # para calculo de taxa de erro
+        if (actual_class == predicted_class):
+            true_positives += 1
+        else:
+            false_positives += 1
+
+    error_rate = util.errorRate(true_positives, false_positives)
+
+    error_rates.append(error_rate)
+
     predictions.append(samples_predictions)
+
+print("confusion matrix")
+print(util.confusionMatrix(predictions))
+print("error rate average %s" % util.errorRateAverage(error_rates))
