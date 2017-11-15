@@ -104,13 +104,13 @@ for train_index, test_index in skf.split(fou, target):
         kar_gauss_posteriors = gaussian.posteriorFromEachClass(kar_test_sample, kar_mu_, kar_sigma_, prior_)
 
         # calculate posteriors from view fou using parzen window
-        fou_parzen_posteriors = parzen.posteriorFromEachClass(fou_train_set, train_class_size, fou_test_sample, prior_, fou_h)
+        fou_parzen_posteriors = parzen.posteriorFromEachClass(fou_train_set, train_class_size, fou_test_sample, fou_h, prior_)
 
         # calculate posteriors from view fac using parzen window
-        fac_parzen_posteriors = parzen.posteriorFromEachClass(fac_train_set, train_class_size, fac_test_sample, prior_, fac_h)
+        fac_parzen_posteriors = parzen.posteriorFromEachClass(fac_train_set, train_class_size, fac_test_sample,fac_h, prior_ )
 
         # calculate posteriors from vew kar using parzen window
-        kar_parzen_posteriors = parzen.posteriorFromEachClass(kar_train_set, train_class_size, kar_test_sample, prior_, kar_h)
+        kar_parzen_posteriors = parzen.posteriorFromEachClass(kar_train_set, train_class_size, kar_test_sample,kar_h, prior_ )
 
         posteriors = zip(fou_gauss_posteriors, fac_gauss_posteriors, kar_gauss_posteriors,
                          fou_parzen_posteriors, fac_parzen_posteriors, kar_parzen_posteriors)
