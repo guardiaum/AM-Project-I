@@ -50,8 +50,8 @@ for class_w in range(0, 10):
     end_sample = initial_sample + (fac.shape[0] / 10)
 
     # get values from training samples
-    fac_samples = fac[initial_sample: end_sample, :]
-    target_samples = target[initial_sample: end_sample]
+    fac_samples = fac[int(initial_sample): int(end_sample):]
+    target_samples = target[int(initial_sample): int(end_sample)]
 
     h = bandwidth_estimator(fac_samples)
 

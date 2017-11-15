@@ -18,7 +18,7 @@ numberOfClasses = 10
 # x = point for dennsity estimation
 # x_i = samples
 def kernel_function(h, x, x_i):
-    return (x - x_i) / h
+    return (x - x_i) / h    
 
 
 # product from kernel function

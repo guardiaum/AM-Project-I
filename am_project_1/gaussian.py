@@ -41,15 +41,15 @@ def estimateParameters(train_set, numberOfClasses):
 # calculate theta from samples
 def calculateTheta(samples):
     # calculates mean and standard deviation
-    mu = np.mean(samples, axis=1)
+    mu = np.mean(samples, axis=0)
 
     cov = []
-    for i in range(0, samples.shape[0]):
+    for i in range(0, samples.shape[1]):
         row_std = []
-        for j in range(0, samples.shape[0]):
+        for j in range(0, samples.shape[1]):
             std = 0
             if (i == j):
-                std = np.std(samples[i, :])
+                std = np.mean((samples-mu[i])**2, axis=0)[i]
             row_std.append(std)
         cov.append(row_std)
 
@@ -63,22 +63,31 @@ def likelihood(x, mu, sigma):
     d = mu.shape[0]
 
     # computes probability density function for x given class
-    first_statement = np.power(2 * np.pi, (-d/2))
-    second_statement = np.power(np.product(sigma.diagonal()), -1/2)
+    first_statement = (2 * np.pi)**(-d/2)
+    #print("firstt: %s" % first_statement)
+    second_statement = (np.product(sigma.diagonal()))**(-0.5)
+    #print("second: %s" % second_statement)
 
     # for each sample calculates the natural exponential
-    exp_statement = []
+    exp_statement = 0
     for j in range(0, d):
-        std = np.power(x - mu[j], 2) # standard deviation from each feature in sample
+        std = ((x[j] - mu[j])**2) # standard deviation from each feature in sample
         exp = std / sigma[j, j] # sigma[j, j] > lambda
-        exp_statement.append(exp)
+        exp_statement += exp
 
-    exp_statement = np.array(exp_statement)
-    third_statement = np.exp(-1/2 * np.sum(exp_statement))
-    #print(third_statement)
+    #exp_statement = np.array(exp_statement)
+    #print("exp: %s" % exp)
+
+    soma = np.sum(exp_statement)
+    #print("sum: %s" % soma)
+    multip = -0.5 * soma
+    #print("mult: %s" % multip)
+    third_statement = np.e ** (multip)
+    #print("third: %s" % third_statement)
 
     # calculates pdf for sample
     likelihood = first_statement * second_statement * third_statement
+    # print likelihood
 
     # pdfs from all training samples
     return np.array(likelihood)
