@@ -4,6 +4,7 @@ import nayve_bayes as bayes
 import parzen
 import gaussian
 from sklearn.model_selection import StratifiedKFold
+from sklearn import preprocessing
 
 '''
     RUN BAYESIAN PARZEN WINDOW CLASSIFIER
@@ -28,6 +29,10 @@ kar_file = "mfeat/mfeat-kar"
 fac = util.readDataset(fac_file)
 fou = util.readDataset(fou_file)
 kar = util.readDataset(kar_file)
+
+fac = preprocessing.scale(fac)
+fou = preprocessing.scale(fou)
+kar = preprocessing.scale(kar)
 
 # Generates numpy array of targets (classes)
 target = util.generateTargets(numberOfClasses, patternSpace)
