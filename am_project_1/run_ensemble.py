@@ -36,6 +36,15 @@ target = util.generateTargets(numberOfClasses, patternSpace)
 # rskf = RepeatedStratifiedKFold(n_splits=10, n_repeats=30, random_state=42)
 skf = StratifiedKFold(n_splits=10, random_state=42)
 
+fou_h = parzen.bandwidth_estimator(fou)
+print("fou best bandwidth: {0}".format(fou_h))
+
+fac_h = parzen.bandwidth_estimator(fac)
+print("fac best bandwidth: {0}".format(fac_h))
+
+kar_h = parzen.bandwidth_estimator(kar)
+print("fac best bandwidth: {0}".format(fac_h))
+
 r = 0
 error_rates = []
 predictions = []
@@ -95,13 +104,13 @@ for train_index, test_index in skf.split(fou, target):
         kar_gauss_posteriors = gaussian.posteriorFromEachClass(kar_test_sample, kar_mu_, kar_sigma_, prior_)
 
         # calculate posteriors from view fou using parzen window
-        fou_parzen_posteriors = parzen.posteriorFromEachClass(fou_train_set, train_class_size, fou_test_sample, prior_)
+        fou_parzen_posteriors = parzen.posteriorFromEachClass(fou_train_set, train_class_size, fou_test_sample, prior_, fou_h)
 
         # calculate posteriors from view fac using parzen window
-        fac_parzen_posteriors = parzen.posteriorFromEachClass(fac_train_set, train_class_size, fac_test_sample, prior_)
+        fac_parzen_posteriors = parzen.posteriorFromEachClass(fac_train_set, train_class_size, fac_test_sample, prior_, fac_h)
 
         # calculate posteriors from vew kar using parzen window
-        kar_parzen_posteriors = parzen.posteriorFromEachClass(kar_train_set, train_class_size, kar_test_sample, prior_)
+        kar_parzen_posteriors = parzen.posteriorFromEachClass(kar_train_set, train_class_size, kar_test_sample, prior_, kar_h)
 
         posteriors = zip(fou_gauss_posteriors, fac_gauss_posteriors, kar_gauss_posteriors,
                          fou_parzen_posteriors, fac_parzen_posteriors, kar_parzen_posteriors)

@@ -58,12 +58,9 @@ def bandwidth_estimator(data):
     grid.fit(data)
     return grid.best_estimator_.bandwidth
 
-def posteriorFromEachClass(train_set, train_class_size, test_sample, prior_):
+def posteriorFromEachClass(train_set, train_class_size, test_sample, h, prior_):
     # iterates through classes calculating the density
     # for x given the class w
-
-    h = bandwidth_estimator(train_set)
-    print("best bandwidth: {0}".format(h))
 
     densities = []
     for w in range(0, numberOfClasses):
@@ -96,16 +93,16 @@ def posteriorFromEachClass(train_set, train_class_size, test_sample, prior_):
     return np.array(posteriors)
 
 # predict sample using estimated h parameter
-def predict(train_set, train_class_size, test_sample, prior_):
+def predict(train_set, train_class_size, test_sample, h, prior_):
 
-    posteriors = posteriorFromEachClass(train_set, train_class_size, test_sample, prior_)
+    posteriors = posteriorFromEachClass(train_set, train_class_size, test_sample, h, prior_)
 
     # afeta exemplo a classe de maior posteriori
     return np.argmax(posteriors), posteriors[np.argmax(posteriors)]
 
 
 # run classifier withh stratified cros validation
-def runClassifier(rskf, dataset, target):
+def runClassifier(rskf, dataset, target, h):
     error_rates = []
     predictions = []
 
@@ -135,7 +132,7 @@ def runClassifier(rskf, dataset, target):
 
             actual_class = test_target[i]
 
-            predicted_class, posteriori = predict(train_set, train_class_size, test_sample, prior_)
+            predicted_class, posteriori = predict(train_set, train_class_size, test_sample, h, prior_)
 
             # usado para gerar matriz de confusao
             prediction = []

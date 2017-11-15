@@ -30,19 +30,29 @@ target = util.generateTargets(numberOfClasses, patternSpace)
 # rskf = RepeatedStratifiedKFold(n_splits=10, n_repeats=30, random_state=42)
 skf = StratifiedKFold(n_splits=10, random_state=42)
 
-fou_predictions, fou_error_rates = parzen.runClassifier(skf, fou, target)
+fou_h = parzen.bandwidth_estimator(fou)
+print("fou best bandwidth: {0}".format(fou_h))
+
+fou_predictions, fou_error_rates = parzen.runClassifier(skf, fou, target, fou_h)
 
 print("fou confusion matrix")
 print(util.confusionMatrix(fou_predictions))
 print("error rate average %s" % util.errorRateAverage(fou_error_rates))
 
-fac_predictions, fac_error_rates = parzen.runClassifier(skf, fac, target)
+fac_h = parzen.bandwidth_estimator(fac)
+print("fac best bandwidth: {0}".format(fac_h))
+
+fac_predictions, fac_error_rates = parzen.runClassifier(skf, fac, target, fac_h)
 
 print("fac confusion matrix")
 print(util.confusionMatrix(fac_predictions))
 print("fac error rate average %s" % util.errorRateAverage(fac_error_rates))
 
-kar_predictions, kar_error_rates = parzen.runClassifier(skf, kar, target)
+
+kar_h = parzen.bandwidth_estimator(kar)
+print("fac best bandwidth: {0}".format(fac_h))
+
+kar_predictions, kar_error_rates = parzen.runClassifier(skf, kar, target, kar_h)
 
 print("kar confusion matrix")
 print(util.confusionMatrix(kar_predictions))
