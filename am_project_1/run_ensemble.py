@@ -70,11 +70,6 @@ for train_index, test_index in skf.split(fou, target):
     fac_mu_, fac_sigma_ = gaussian.estimateParameters(fac_train_set, numberOfClasses)
     kar_mu_, kar_sigma_ = gaussian.estimateParameters(kar_train_set, numberOfClasses)
 
-    # h = bandwidth_estimator(train_set)
-    fou_h = 2 # fazer a estimativa de h para cada view
-    fac_h = 2
-    kar_h = 2
-
     # predict class for each sample in test set
     true_positives = 0
     false_positives = 0
@@ -100,13 +95,13 @@ for train_index, test_index in skf.split(fou, target):
         kar_gauss_posteriors = gaussian.posteriorFromEachClass(kar_test_sample, kar_mu_, kar_sigma_, prior_)
 
         # calculate posteriors from view fou using parzen window
-        fou_parzen_posteriors = parzen.posteriorFromEachClass(fou_train_set, train_class_size, fou_test_sample, fou_h, prior_)
+        fou_parzen_posteriors = parzen.posteriorFromEachClass(fou_train_set, train_class_size, fou_test_sample, prior_)
 
         # calculate posteriors from view fac using parzen window
-        fac_parzen_posteriors = parzen.posteriorFromEachClass(fac_train_set, train_class_size, fac_test_sample, fac_h, prior_)
+        fac_parzen_posteriors = parzen.posteriorFromEachClass(fac_train_set, train_class_size, fac_test_sample, prior_)
 
         # calculate posteriors from vew kar using parzen window
-        kar_parzen_posteriors = parzen.posteriorFromEachClass(kar_train_set, train_class_size, kar_test_sample, kar_h, prior_)
+        kar_parzen_posteriors = parzen.posteriorFromEachClass(kar_train_set, train_class_size, kar_test_sample, prior_)
 
         posteriors = zip(fou_gauss_posteriors, fac_gauss_posteriors, kar_gauss_posteriors,
                          fou_parzen_posteriors, fac_parzen_posteriors, kar_parzen_posteriors)

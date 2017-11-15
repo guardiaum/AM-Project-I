@@ -18,7 +18,7 @@ numberOfClasses = 10
 # x = point for dennsity estimation
 # x_i = samples
 def kernel_function(h, x, x_i):
-    return (x - x_i) / h    
+    return (x - x_i) / float(h)
 
 
 # product from kernel function
@@ -40,11 +40,11 @@ def parzen_estimation(x_samples, point_x, h, d, kernel_func, window_func):
         phi = kernel_func(h, point_x, sample)
         k += window_func(phi)
 
-    density = (1/n) * (1/float(v)) * float(k)
+    density = (1/float(n)) * (1/float(v)) * float(k)
 
     #print("k", k)
     #print("n", n)
-    #print("v", v)
+    #print("v", float(v))
     #print("density", density)
 
     return density
@@ -53,16 +53,21 @@ def parzen_estimation(x_samples, point_x, h, d, kernel_func, window_func):
 # fits a better estimation for parameter h
 def bandwidth_estimator(data):
     # use grid search cross-validation to optimize the bandwidth
-    params = {'bandwidth': np.logspace(0.2, 1, 20)}
+    params = {'bandwidth': np.logspace(0.3, 1, 10)}
     grid = GridSearchCV(KernelDensity(), params, cv=5)
     grid.fit(data)
     return grid.best_estimator_.bandwidth
 
-def posteriorFromEachClass(train_set, train_class_size, test_sample, h, prior_):
+def posteriorFromEachClass(train_set, train_class_size, test_sample, prior_):
     # iterates through classes calculating the density
     # for x given the class w
+
+    h = bandwidth_estimator(train_set)
+    print("best bandwidth: {0}".format(h))
+
     densities = []
     for w in range(0, numberOfClasses):
+
         # limits for training samples from class
         train_initial_sample = w * int(train_class_size)
         train_end_sample = train_initial_sample + int(train_class_size)
@@ -91,9 +96,9 @@ def posteriorFromEachClass(train_set, train_class_size, test_sample, h, prior_):
     return np.array(posteriors)
 
 # predict sample using estimated h parameter
-def predict(train_set, train_class_size, test_sample, h, prior_):
+def predict(train_set, train_class_size, test_sample, prior_):
 
-    posteriors = posteriorFromEachClass(train_set, train_class_size, test_sample, h, prior_)
+    posteriors = posteriorFromEachClass(train_set, train_class_size, test_sample, prior_)
 
     # afeta exemplo a classe de maior posteriori
     return np.argmax(posteriors), posteriors[np.argmax(posteriors)]
@@ -114,10 +119,6 @@ def runClassifier(rskf, dataset, target):
         test_set = dataset[test_index]
         test_target = target[test_index]
 
-        # h = bandwidth_estimator(train_set)
-        h = 2
-        #print("best bandwidth: {0}".format(h))
-
         # training set and class sample size
         train_sample_size = train_set.shape[0]
         train_class_size = train_sample_size / numberOfClasses
@@ -134,7 +135,7 @@ def runClassifier(rskf, dataset, target):
 
             actual_class = test_target[i]
 
-            predicted_class, posteriori = predict(train_set, train_class_size, test_sample, h, prior_)
+            predicted_class, posteriori = predict(train_set, train_class_size, test_sample, prior_)
 
             # usado para gerar matriz de confusao
             prediction = []
