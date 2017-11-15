@@ -1,6 +1,7 @@
 import util
 import parzen
 from sklearn.model_selection import StratifiedKFold
+from sklearn import preprocessing
 
 '''
     RUN BAYESIAN PARZEN WINDOW CLASSIFIER
@@ -23,6 +24,10 @@ fac = util.readDataset(fac_file)
 fou = util.readDataset(fou_file)
 kar = util.readDataset(kar_file)
 
+fac = preprocessing.scale(fac)
+fou = preprocessing.scale(fou)
+kar = preprocessing.scale(kar)
+
 # Generates numpy array of targets (classes)
 target = util.generateTargets(numberOfClasses, patternSpace)
 
@@ -31,6 +36,7 @@ target = util.generateTargets(numberOfClasses, patternSpace)
 skf = StratifiedKFold(n_splits=10, random_state=42)
 
 fou_h = parzen.bandwidth_estimator(fou)
+#fou_h = 1.99
 print("fou best bandwidth: {0}".format(fou_h))
 
 fou_predictions, fou_error_rates = parzen.runClassifier(skf, fou, target, fou_h)
@@ -50,7 +56,7 @@ print("fac error rate average %s" % util.errorRateAverage(fac_error_rates))
 
 
 kar_h = parzen.bandwidth_estimator(kar)
-print("fac best bandwidth: {0}".format(fac_h))
+print("kar best bandwidth: {0}".format(fac_h))
 
 kar_predictions, kar_error_rates = parzen.runClassifier(skf, kar, target, kar_h)
 
