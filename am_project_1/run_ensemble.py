@@ -4,7 +4,9 @@ import nayve_bayes as bayes
 import parzen
 import gaussian
 from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn import preprocessing
+from sklearn.decomposition import PCA
 
 '''
     RUN BAYESIAN PARZEN WINDOW CLASSIFIER
@@ -13,7 +15,11 @@ from sklearn import preprocessing
 '''
 
 def ensemblePrediction(priors, posteriors):
-    return np.argmax(((1 - len(priors)) * priors) + posteriors)
+    sub = 1 - 3
+    multip = sub * priors
+    sum_rule = multip + posteriors
+    sum_rule = np.sum(sum_rule, axis=1)
+    return np.argmax(sum_rule)
 
 # number of classes
 numberOfClasses = 10
@@ -34,29 +40,35 @@ fac = preprocessing.scale(fac)
 fou = preprocessing.scale(fou)
 kar = preprocessing.scale(kar)
 
+# project the d-dimensional data to a lower dimension
+pca = PCA(n_components=15, whiten=False)
+fac = pca.fit_transform(fac)
+fou = pca.fit_transform(fou)
+kar = pca.fit_transform(kar)
+
 # Generates numpy array of targets (classes)
 target = util.generateTargets(numberOfClasses, patternSpace)
 
 # stratified cross validation
-# rskf = RepeatedStratifiedKFold(n_splits=10, n_repeats=30, random_state=42)
-skf = StratifiedKFold(n_splits=10, random_state=42)
+rskf = RepeatedStratifiedKFold(n_splits=10, n_repeats=30, random_state=42)
+#skf = StratifiedKFold(n_splits=10, random_state=42)
 
-fou_h = parzen.bandwidth_estimator(fou)
+'''FIXED BANDWIDTHS'''
+fou_h = 1.9952
+fac_h = 2.3865
+kar_h = 1.9952
+
 print("fou best bandwidth: {0}".format(fou_h))
-
-fac_h = parzen.bandwidth_estimator(fac)
 print("fac best bandwidth: {0}".format(fac_h))
-
-kar_h = parzen.bandwidth_estimator(kar)
-print("fac best bandwidth: {0}".format(fac_h))
+print("kar best bandwidth: {0}".format(kar_h))
 
 r = 0
 error_rates = []
 predictions = []
-for train_index, test_index in skf.split(fou, target):
+for train_index, test_index in rskf.split(fou, target):
 
     r += 1
-    # print("repetition %s" % r)
+    print("repetition %s" % r)
 
     # datasets
     fou_train_set = fou[train_index]
@@ -75,6 +87,14 @@ for train_index, test_index in skf.split(fou, target):
     train_sample_size = fou_train_set.shape[0]
     test_sample_size = fou_test_set.shape[0]
     train_class_size = train_sample_size / numberOfClasses
+
+    '''UNCOMMENT FOR NEW BANDWIDTH ESTIMATIONS'''
+    # fou_h = parzen.bandwidth_estimator(fou_train_set)
+    #print("fou best bandwidth: {0}".format(fou_h))
+    # fac_h = parzen.bandwidth_estimator(fac_train_set)
+    #print("fac best bandwidth: {0}".format(fac_h))
+    # kar_h = parzen.bandwidth_estimator(kar_train_set)
+    #print("kar best bandwidth: {0}".format(kar_h))
 
     # compute priors - same for all datasets
     prior_ = bayes.calculatePrior(fou_train_set, numberOfClasses)
@@ -123,6 +143,7 @@ for train_index, test_index in skf.split(fou, target):
         # Ensemble classifiers using the sum rule
         predicted_class = ensemblePrediction(prior_, posteriors)
 
+        #print("actual:", actual_class, " prediction:", predicted_class)
         #print("true class: %s" % actual_class)
         #print("predicted: %s"% predicted_class)
 
@@ -145,5 +166,6 @@ for train_index, test_index in skf.split(fou, target):
     predictions.append(samples_predictions)
 
 print("confusion matrix")
-print(util.confusionMatrix(predictions))
+confusionMatrix = util.confusionMatrix(predictions)
+print(np.array_str(confusionMatrix, precision=6, suppress_small=True))
 print("error rate average %s" % util.errorRateAverage(error_rates))

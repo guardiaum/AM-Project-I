@@ -17,17 +17,14 @@ numberOfClasses = 10
 # h = bandwidth
 # x = point for dennsity estimation
 # x_i = samples
-#def kernel_function(h, x, x_i):
-#    return (x - x_i) / h    
-
 def regularization_function(h, x, x_i):
-    return (x_i - x) / h  
+    return (x_i - x) / float(h)
 
 # product from kernel function
 def gaussian_window_func(x_samples, point_x, h):
 
     x_sample = regularization_function(h, point_x, x_samples )
-    x_sample = (1 / (((2*np.pi)**0.5)*h)) * np.exp(  (-1/2)*(x_sample)**2 )
+    x_sample = (1 / float(((2*np.pi)**0.5)*h)) * np.exp((-1/float(2))*(x_sample)**2 )
     prod_sample= np.prod(x_sample, axis=1)
     k = np.sum(prod_sample)
     return k
@@ -42,11 +39,11 @@ def parzen_estimation(x_samples, point_x, h):
     v = h**x_samples.shape[1]
     k = gaussian_window_func(x_samples, point_x, h)
     
-    density = (1/n) * (1/float(v)) * float(k)
+    density = (1/float(n)) * (1/float(v)) * float(k)
 
     #print("k", k)
     #print("n", n)
-    #print("v", float(v))
+    #print("v", float(v)
     #print("density", density)
 
     return density
@@ -116,8 +113,7 @@ def runClassifier(rskf, dataset, target, h):
         test_set = dataset[test_index]
         test_target = target[test_index]
 
-        h = bandwidth_estimator(train_set)
-        #h = h
+        #h = bandwidth_estimator(train_set)
         print("best bandwidth: {0}".format(h))
 
         # training set and class sample size
@@ -144,7 +140,7 @@ def runClassifier(rskf, dataset, target, h):
             prediction.append(predicted_class)
             repetition_predictions.append(prediction)
 
-            print("actual:", actual_class, " prediction:", predicted_class)
+            #print("actual:", actual_class, " prediction:", predicted_class)
 
             # para calculo de taxa de erro
             if (actual_class == predicted_class):
