@@ -1,6 +1,8 @@
 import util
 import parzen
 from sklearn.model_selection import StratifiedKFold
+from sklearn import preprocessing
+from sklearn.decomposition import PCA
 
 '''
     RUN BAYESIAN PARZEN WINDOW CLASSIFIER
@@ -22,6 +24,18 @@ kar_file = "mfeat/mfeat-kar"
 fac = util.readDataset(fac_file)
 fou = util.readDataset(fou_file)
 kar = util.readDataset(kar_file)
+
+#
+fac = preprocessing.scale(fac)
+fou = preprocessing.scale(fou)
+kar = preprocessing.scale(kar)
+
+# project the d-dimensional data to a lower dimension
+pca = PCA(n_components=15, whiten=False)
+fac = pca.fit_transform(fac)
+fou = pca.fit_transform(fou)
+kar = pca.fit_transform(kar)
+
 
 # Generates numpy array of targets (classes)
 target = util.generateTargets(numberOfClasses, patternSpace)

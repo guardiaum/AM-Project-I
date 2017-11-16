@@ -4,6 +4,7 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import StratifiedKFold
 from sklearn import preprocessing
 
+
 '''
     RUN BAYESIAN GAUSSIAN CLASSIFIER
     3 VIEWS
@@ -25,6 +26,7 @@ fac = util.readDataset(fac_file)
 fou = util.readDataset(fou_file)
 kar = util.readDataset(kar_file)
 
+#
 fac = preprocessing.scale(fac)
 fou = preprocessing.scale(fou)
 kar = preprocessing.scale(kar)

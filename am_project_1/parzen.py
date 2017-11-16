@@ -17,29 +17,31 @@ numberOfClasses = 10
 # h = bandwidth
 # x = point for dennsity estimation
 # x_i = samples
-def kernel_function(h, x, x_i):
-    return (x - x_i) / h    
+#def kernel_function(h, x, x_i):
+#    return (x - x_i) / h    
 
+def regularization_function(h, x, x_i):
+    return (x_i - x) / h  
 
 # product from kernel function
-def gaussian_window_func(phi):
-    return np.product(phi)
+def gaussian_window_func(x_samples, point_x, h):
 
+    x_sample = regularization_function(h, point_x, x_samples )
+    x_sample = (1 / (((2*np.pi)**0.5)*h)) * np.exp(  (-1/2)*(x_sample)**2 )
+    prod_sample= np.prod(x_sample, axis=1)
+    k = np.sum(prod_sample)
+    return k
 
 # kernel estimator
 # x_samples = training samples
 # point_x = test sample
 # h = bandwidth
 # d = number of dimensions
-def parzen_estimation(x_samples, point_x, h, d, kernel_func, window_func):
+def parzen_estimation(x_samples, point_x, h):
     n = x_samples.shape[0]
-    v = h**d
-    k = 0
-
-    for sample in x_samples:
-        phi = kernel_func(h, point_x, sample)
-        k += window_func(phi)
-
+    v = h**x_samples.shape[1]
+    k = gaussian_window_func(x_samples, point_x, h)
+    
     density = (1/n) * (1/float(v)) * float(k)
 
     #print("k", k)
@@ -69,9 +71,7 @@ def posteriorFromEachClass(train_set, train_class_size, test_sample, h, prior_):
         train_samples = train_set[train_initial_sample:train_end_sample, :]
 
         # calculates density through parzen window estimation with gaussian kernel
-        density = parzen_estimation(train_samples, test_sample, h=h, d=train_samples.shape[1],
-                                    kernel_func=kernel_function,
-                                    window_func=gaussian_window_func)
+        density = parzen_estimation(train_samples, test_sample, h)
 
         densities.append(density)
     densities = np.array(densities)
@@ -108,15 +108,15 @@ def runClassifier(rskf, dataset, target):
     for train_index, test_index in rskf.split(dataset, target):
 
         r += 1
-        #print("repetition %s" % r)
+        print("repetition %s" % r)
 
         train_set = dataset[train_index]
         test_set = dataset[test_index]
         test_target = target[test_index]
 
-        # h = bandwidth_estimator(train_set)
-        h = 2
-        #print("best bandwidth: {0}".format(h))
+        h = bandwidth_estimator(train_set)
+        #h = h
+        print("best bandwidth: {0}".format(h))
 
         # training set and class sample size
         train_sample_size = train_set.shape[0]
@@ -142,7 +142,7 @@ def runClassifier(rskf, dataset, target):
             prediction.append(predicted_class)
             repetition_predictions.append(prediction)
 
-            #print("actual:", actual_class, " prediction:", predicted_class)
+            print("actual:", actual_class, " prediction:", predicted_class)
 
             # para calculo de taxa de erro
             if (actual_class == predicted_class):
