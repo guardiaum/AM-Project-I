@@ -107,14 +107,14 @@ def runClassifier(rskf, dataset, target, h):
     for train_index, test_index in rskf.split(dataset, target):
 
         r += 1
-        print("repetition %s" % r)
+        #print("repetition %s" % r)
 
         train_set = dataset[train_index]
         test_set = dataset[test_index]
         test_target = target[test_index]
 
         #h = bandwidth_estimator(train_set)
-        print("best bandwidth: {0}".format(h))
+        #print("best bandwidth: {0}".format(h))
 
         # training set and class sample size
         train_sample_size = train_set.shape[0]

@@ -68,7 +68,7 @@ predictions = []
 for train_index, test_index in rskf.split(fou, target):
 
     r += 1
-    print("repetition %s" % r)
+    #print("repetition %s" % r)
 
     # datasets
     fou_train_set = fou[train_index]
