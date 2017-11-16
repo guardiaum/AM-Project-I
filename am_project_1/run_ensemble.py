@@ -25,6 +25,8 @@ def ensemblePrediction(priors, posteriors):
 numberOfClasses = 10
 # patterns per class
 patternSpace = 200
+# number of repetitions
+repetitions = 30
 
 # path to datasets
 fac_file = "mfeat/mfeat-fac"
@@ -168,4 +170,18 @@ for train_index, test_index in rskf.split(fou, target):
 print("confusion matrix")
 confusionMatrix = util.confusionMatrix(predictions)
 print(np.array_str(confusionMatrix, precision=6, suppress_small=True))
+print("")
+
+print("precision by class")
+precision_by_class = confusionMatrix.diagonal() / float(patternSpace * repetitions)
+print(precision_by_class)
+print("")
+
+print("precision average %s" % np.mean(precision_by_class))
 print("error rate average %s" % util.errorRateAverage(error_rates))
+print("")
+
+# erro rate for each repetition
+for i, rate in enumerate(error_rates):
+    print ("repetition:", i, "error rate", rate)
+print("")
