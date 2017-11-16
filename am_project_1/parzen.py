@@ -46,7 +46,7 @@ def parzen_estimation(x_samples, point_x, h):
 
     #print("k", k)
     #print("n", n)
-    #print("v", v)
+    #print("v", float(v))
     #print("density", density)
 
     return density
@@ -55,7 +55,7 @@ def parzen_estimation(x_samples, point_x, h):
 # fits a better estimation for parameter h
 def bandwidth_estimator(data):
     # use grid search cross-validation to optimize the bandwidth
-    params = {'bandwidth': np.logspace(0.2, 1, 20)}
+    params = {'bandwidth': np.logspace(0.3, 1, 10)}
     grid = GridSearchCV(KernelDensity(), params, cv=5)
     grid.fit(data)
     return grid.best_estimator_.bandwidth
@@ -63,8 +63,10 @@ def bandwidth_estimator(data):
 def posteriorFromEachClass(train_set, train_class_size, test_sample, h, prior_):
     # iterates through classes calculating the density
     # for x given the class w
+
     densities = []
     for w in range(0, numberOfClasses):
+
         # limits for training samples from class
         train_initial_sample = w * int(train_class_size)
         train_end_sample = train_initial_sample + int(train_class_size)
@@ -100,7 +102,7 @@ def predict(train_set, train_class_size, test_sample, h, prior_):
 
 
 # run classifier withh stratified cros validation
-def runClassifier(rskf, dataset, target):
+def runClassifier(rskf, dataset, target, h):
     error_rates = []
     predictions = []
 
