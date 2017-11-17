@@ -71,8 +71,15 @@ print("fou error rate average %s" % util.errorRateAverage(fou_error_rates))
 print("")
 
 # erro rate for each repetition
+print("error rates")
 for i, rate in enumerate(fou_error_rates):
-    print ("repetition:", i, "error rate", rate)
+    print (rate)
+print("")
+
+# precision for each repetition
+print("precision")
+for i, rate in enumerate(fou_error_rates):
+    print (1 - rate)
 print("")
 
 print("======================== FAC =============================")
@@ -97,9 +104,17 @@ print("fac error rate average %s" % util.errorRateAverage(fac_error_rates))
 print("")
 
 # erro rate for each repetition
+print("error rates")
 for i, rate in enumerate(fac_error_rates):
-    print ("repetition:", i, "error rate", rate)
+    print (rate)
 print("")
+
+# precision for each repetition
+print("precision")
+for i, rate in enumerate(fac_error_rates):
+    print (1 - rate)
+print("")
+
 
 print("======================== KAR =============================")
 #kar_h = parzen.bandwidth_estimator(kar)
@@ -123,5 +138,13 @@ print("kar error rate average %s" % util.errorRateAverage(kar_error_rates))
 print("")
 
 # erro rate for each repetition
+print("error rates")
 for i, rate in enumerate(kar_error_rates):
-    print ("repetition:", i, "error rate", rate)
+    print (rate)
+print("")
+
+# precision for each repetition
+print("precision")
+for i, rate in enumerate(kar_error_rates):
+    print (1 - rate)
+print("")
